@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Eeny">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EFEDE8">
+<title>Eeny</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EFEDE8;--ink:#151412;--mut:#6B685F;--line:#BDB9B0;--line2:#CFCBC2;--field:#F6F4F0;--acc:#B93B14;
+--sans:'Hanken Grotesk',system-ui,-apple-system,sans-serif;--mono:'DM Mono',ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+[hidden]{display:none!important}
+#app{height:100dvh;max-width:430px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 24px max(20px,env(safe-area-inset-bottom));display:flex;flex-direction:column;position:relative;overflow:hidden}
+@media(min-width:500px){body{background:#DDDAD2}#app{height:min(844px,calc(100dvh - 48px));margin:24px auto;border-radius:44px;background:var(--bg);box-shadow:0 20px 60px rgba(0,0,0,.12)}}
+
+.hdr{display:flex;align-items:center;justify-content:space-between;height:44px;flex:none}
+.crumb{display:flex;align-items:center;gap:10px;font:11px var(--mono);letter-spacing:.08em;color:var(--mut)}
+.crumb i{display:block;width:24px;height:2px;background:var(--ink)}
+.mono{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--mut)}
+.mono.s{font-size:10.5px}
+h1{margin:12px 0 0;font-size:32px;line-height:1.1;font-weight:500;letter-spacing:-.02em}
+.sub{margin:10px 0 0;font-size:15px;line-height:1.4;color:var(--mut)}
+
+.screen{display:none;flex-direction:column;flex:1;min-height:0}
+.screen.on{display:flex}
+.body{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding-bottom:8px}
+.body::-webkit-scrollbar{display:none}
+.actions{flex:none;margin-top:12px}
+.row{display:flex;gap:8px}
+.hint{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mut);height:28px}
+.linkbtn{background:none;border:0;padding:6px 10px;font:11px var(--mono);letter-spacing:.08em;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+
+.btn{flex:1;height:56px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);font-size:17px;font-weight:500}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-size:16px}
+.btn:disabled{opacity:.5}
+.btn.spin{flex:1.3}
+.pillbtn{height:40px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:transparent;font:11px var(--mono);letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+.round{width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:transparent;display:flex;align-items:center;justify-content:center;padding:0;flex:none}
+.textbtn{height:48px;border:0;background:transparent;font-size:16px}
+
+.chips{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{height:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:transparent;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.dash{border-style:dashed}
+.chipwrap{display:inline-flex;align-items:center}
+.chipwrap .chip{}
+.chipwrap .chip.has-edit{border-top-right-radius:0;border-bottom-right-radius:0;padding-right:10px}
+.chipwrap .editchip{height:38px;width:34px;border:1px solid var(--line);border-left:0;border-radius:0 999px 999px 0;background:transparent;padding:0;display:flex;align-items:center;justify-content:center}
+.chipwrap .chip.on + .editchip{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lbl{font:10.5px var(--mono);letter-spacing:.08em;color:var(--mut)}
+
+.seg{margin-top:16px;display:flex;gap:2px;padding:4px;border:1px solid var(--line2);border-radius:999px}
+.seg button{flex:1;height:40px;border:0;border-radius:999px;background:transparent;font-size:14px;font-weight:500;padding:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+
+.switchrow{margin-top:8px;display:flex;align-items:center;justify-content:space-between;height:44px;font-size:15px}
+.switch{width:46px;height:28px;border:0;border-radius:999px;background:var(--line);padding:3px;display:flex;justify-content:flex-start}
+.switch[aria-checked=true]{background:var(--ink);justify-content:flex-end}
+.switch span{display:block;width:22px;height:22px;border-radius:999px;background:var(--bg)}
+
+.field{margin-top:20px;display:flex;flex-direction:column;gap:6px;flex:1}
+.field input,.nameinput{height:52px;padding:0 16px;border:1px solid var(--line);border-radius:14px;background:var(--field);color:var(--ink);font:17px var(--sans);width:100%}
+.two{display:flex;gap:12px}
+
+.result{margin-top:4px;text-align:center}
+.big{margin-top:2px;font-size:32px;font-weight:500;letter-spacing:-.02em;min-height:1.2em;word-break:break-word}
+.big.num{font-size:44px;line-height:1.1}
+
+/* wheel */
+.wheel{position:relative;width:264px;height:264px;margin:8px auto 0}
+.wheel svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#wheelRot{will-change:transform}
+
+/* numbers */
+.stage{display:flex;justify-content:center;margin-top:10px}
+.die{transform-box:fill-box;transform-origin:center;transform:rotate(-10deg)}
+.die.tumble{animation:tumble .9s ease-in-out}
+@keyframes tumble{0%{transform:rotate(-10deg) scale(1)}25%{transform:rotate(130deg) scale(.88)}50%{transform:rotate(250deg) scale(1.06)}75%{transform:rotate(340deg) scale(.95)}100%{transform:rotate(350deg) scale(1)}}
+
+/* coin */
+.coinwrap{margin:14px auto 0;width:280px;height:280px;perspective:800px}
+.coinwrap svg{width:100%;height:100%}
+.coinwrap.toss{animation:toss 1.2s ease-out}
+@keyframes toss{0%{transform:translateY(0) rotateX(0)}40%{transform:translateY(-50px) rotateX(720deg)}100%{transform:translateY(0) rotateX(1440deg)}}
+.chance{margin-top:14px;display:flex;align-items:baseline;justify-content:space-between}
+input[type=range]{width:100%;height:28px;margin:10px 0 0;accent-color:var(--ink)}
+.rangelbls{display:flex;justify-content:space-between}
+
+/* cards */
+.stack{position:relative;margin-top:20px;height:340px}
+.card{position:absolute;left:50%;top:10px;width:210px;height:290px;margin-left:-105px;border-radius:22px;background:var(--bg)}
+.card.c1{border:1px solid var(--line2);transform:translateX(-34px) rotate(-9deg)}
+.card.c2{border:1px solid var(--line);transform:translateX(34px) rotate(8deg)}
+.card svg{position:absolute;left:50%;top:50%;margin:-60px 0 0 -60px}
+.card.front{border:1.5px solid var(--ink);background:var(--field);padding:20px;display:flex;flex-direction:column;justify-content:space-between}
+.card.front .top{display:flex;align-items:center;justify-content:space-between}
+.card.front .dot{width:8px;height:8px;border-radius:999px;background:var(--acc)}
+.card.front .txt{font-size:28px;line-height:1.15;font-weight:500;letter-spacing:-.02em;word-break:break-word}
+.card.front .rule{height:1px;background:var(--line2)}
+.stack.shuffle .c1{animation:sh1 .8s ease-in-out}
+.stack.shuffle .c2{animation:sh2 .8s ease-in-out}
+.stack.shuffle .front{animation:shf .8s ease-in-out}
+@keyframes sh1{0%,100%{transform:translateX(-34px) rotate(-9deg)}30%{transform:translateX(40px) rotate(10deg)}60%{transform:translateX(-60px) rotate(-14deg)}}
+@keyframes sh2{0%,100%{transform:translateX(34px) rotate(8deg)}30%{transform:translateX(-40px) rotate(-10deg)}60%{transform:translateX(60px) rotate(14deg)}}
+@keyframes shf{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-2deg)}70%{transform:translateY(6px) rotate(2deg)}}
+.card.front.reveal{animation:reveal .5s ease-out}
+@keyframes reveal{0%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+
+/* ball */
+.ballwrap{margin:14px auto 0;width:280px;height:280px}
+.ballwrap svg{width:100%;height:100%}
+.ballwrap.wobble{animation:wobble .9s ease-in-out}
+@keyframes wobble{0%,100%{transform:translate(0) rotate(0)}12%{transform:translate(-10px,3px) rotate(-7deg)}28%{transform:translate(10px,-3px) rotate(6deg)}44%{transform:translate(-8px,2px) rotate(-5deg)}60%{transform:translate(8px,-2px) rotate(4deg)}78%{transform:translate(-4px,1px) rotate(-2deg)}}
+
+/* nav */
+nav{flex:none;margin-top:12px;display:flex;gap:2px;padding:4px;border:1px solid var(--line2);border-radius:999px}
+.tab{flex:1;height:44px;border:0;border-radius:999px;background:transparent;font:500 10.5px var(--mono);letter-spacing:.06em;padding:0}
+.tab[aria-current=page]{background:var(--ink);color:var(--bg)}
+
+/* overlay views */
+.view{display:none;position:absolute;inset:0;background:var(--bg);padding:max(28px,env(safe-area-inset-top)) 24px max(20px,env(safe-area-inset-bottom));flex-direction:column;overflow:hidden;z-index:5}
+.view.on{display:flex}
+.view.setup{z-index:6}
+.rows{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.erow{display:flex;align-items:center;gap:8px}
+.erow .n{width:22px;font:11px var(--mono);color:var(--mut)}
+.erow input{flex:1;min-width:0;height:48px;padding:0 16px;border:1px solid var(--line);border-radius:14px;background:var(--field);color:var(--ink);font:16px var(--sans)}
+.addrow{margin-top:10px;height:48px;border:1px dashed var(--line);border-radius:14px;background:transparent;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.err{margin-top:10px;font-size:14px;color:var(--acc);min-height:1.2em}
+.bullets{margin-top:28px;display:flex;flex-direction:column;gap:18px}
+.bullets div{display:flex;align-items:flex-start;gap:14px;font-size:15px;line-height:1.4}
+.bullets svg{flex:none;margin-top:1px}
+.bigicon{margin-top:36px;width:96px;height:96px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 2. OPTIONS -->
+<section class="screen on" id="s-options">
+  <div class="hdr"><div class="crumb"><i></i>OPTIONS</div><button class="pillbtn" id="editBtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L5.5 13.5l-3.5.5.5-3.5z"/></svg>EDIT WHEEL</button></div>
+  <div class="body">
+    <h1>What should I pick?</h1>
+    <div class="seg" role="group" aria-label="Wheel source"><button data-m="my">My wheel</button><button data-m="random">Random mix</button></div>
+    <div class="chips" id="optChips"></div>
+    <div class="wheel" id="wheelBox" role="img" aria-label="Spinning wheel">
+      <svg viewBox="-30 -30 320 320" aria-hidden="true"><circle cx="130" cy="130" r="150" fill="none" stroke="#B93B14" stroke-opacity=".5" stroke-width="1" stroke-dasharray="2 5"/><circle cx="130" cy="130" r="136" fill="none" stroke="#C9C5BB" stroke-width="1"/></svg>
+      <svg id="wheelRot" viewBox="-30 -30 320 320" aria-hidden="true"></svg>
+      <svg viewBox="-30 -30 320 320" aria-hidden="true"><circle cx="130" cy="130" r="15" fill="#F6F4F0" stroke="#B93B14" stroke-width="1.5"/><circle cx="130" cy="130" r="4.5" fill="#B93B14"/><polygon points="121,-14 139,-14 130,6" fill="#B93B14"/></svg>
+    </div>
+    <div class="result"><div class="mono">RESULT</div><div class="big" id="optResult" aria-live="polite">—</div></div>
+    <div class="switchrow" id="nrRow"><span id="nrLbl">Don't repeat picks</span><button class="switch" id="nrSwitch" role="switch" aria-labelledby="nrLbl"><span></span></button></div>
+  </div>
+  <div class="actions"><div class="row"><button class="btn ghost" id="shuffleBtn"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#B93B14" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:8px"><rect x="3" y="3" width="14" height="14" rx="3.5"/><circle cx="7.5" cy="7.5" r=".7"/><circle cx="12.5" cy="12.5" r=".7"/><circle cx="10" cy="10" r=".7"/></svg>Shuffle</button><button class="btn spin" id="spinBtn">Spin</button></div><div class="hint" data-hint></div></div>
+</section>
+
+<!-- 3. NUMBERS -->
+<section class="screen" id="s-numbers">
+  <div class="hdr"><div class="crumb"><i></i>NUMBERS</div><span class="mono" id="numMeta">RANGE 1–6</span></div>
+  <div class="body">
+    <h1>Pick a number</h1>
+    <div class="two" style="margin-top:20px">
+      <label class="field" style="margin-top:0"><span class="lbl">FROM</span><input id="numMin" type="text" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <label class="field" style="margin-top:0"><span class="lbl">TO · MAX 999</span><input id="numMax" type="text" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+    </div>
+    <div class="chips" id="numChips" style="margin-top:14px"></div>
+    <div class="stage"><svg id="numSvg" width="240" height="240" viewBox="0 0 200 200" role="img" aria-label="Result"></svg></div>
+    <div class="result"><div class="mono">ROLLED</div><div class="big num" id="numResult" aria-live="polite">—</div></div>
+  </div>
+  <div class="actions"><div class="row"><button class="btn" id="rollBtn">Roll</button></div><div class="hint" data-hint></div></div>
+</section>
+
+<!-- 4. YES / NO -->
+<section class="screen" id="s-yesno">
+  <div class="hdr"><div class="crumb"><i></i>YES / NO</div><span class="mono" id="ynMeta">50 / 50</span></div>
+  <div class="body">
+    <h1>Yes or no?</h1>
+    <div class="coinwrap" id="coin"><svg viewBox="0 0 260 260" role="img" aria-label="Coin"><circle cx="130" cy="130" r="128" fill="none" stroke="#C9C5BB"/><circle cx="130" cy="130" r="112" fill="none" stroke="#B93B14" stroke-opacity=".5" stroke-dasharray="2 5"/><circle cx="130" cy="130" r="86" fill="#F6F4F0" stroke="#151412" stroke-width="1.5"/><circle cx="130" cy="130" r="72" fill="none" stroke="#151412" stroke-opacity=".6"/><text id="coinText" x="130" y="131" text-anchor="middle" dominant-baseline="central" font-family="DM Mono, monospace" font-size="36" font-weight="500" letter-spacing="2" fill="#B93B14">YES</text></svg></div>
+    <div class="mono" id="ynSay" style="text-align:center;height:16px;margin-top:8px" aria-hidden="true"></div>
+    <div class="chance"><label for="chance" class="lbl">CHANCE OF YES</label><span id="chanceVal" style="font:500 15px var(--mono)">50%</span></div>
+    <input id="chance" type="range" min="0" max="100" step="5" value="50">
+    <div class="rangelbls lbl"><span>ALWAYS NO</span><span>ALWAYS YES</span></div>
+    <span class="sr" id="ynResult" aria-live="polite"></span>
+  </div>
+  <div class="actions"><div class="row"><button class="btn" id="flipBtn">Flip</button></div><div class="hint" data-hint></div></div>
+</section>
+
+<!-- 5. SURPRISE -->
+<section class="screen" id="s-surprise">
+  <div class="hdr"><div class="crumb"><i></i>SURPRISE</div><span class="mono">FULLY RANDOM</span></div>
+  <div class="body">
+    <h1>Surprise me</h1>
+    <div class="chips" id="poolChips"></div>
+    <div class="stack" id="stack">
+      <div class="card c1"><svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="58" fill="none" stroke="#C9C5BB"/><circle cx="60" cy="60" r="38" fill="none" stroke="#C9C5BB" stroke-dasharray="2 5"/></svg></div>
+      <div class="card c2"><svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="58" fill="none" stroke="#B93B14" stroke-opacity=".5" stroke-dasharray="2 5"/><circle cx="60" cy="60" r="38" fill="none" stroke="#C9C5BB"/></svg></div>
+      <div class="card front" id="frontCard"><div class="top"><span class="mono" id="cardCat">READY</span><span class="dot"></span></div><div class="txt" id="cardTxt" aria-live="polite">Draw a card</div><div class="rule"></div></div>
+    </div>
+  </div>
+  <div class="actions"><div class="row"><button class="btn" id="drawBtn">Draw a card</button></div><div class="hint" data-hint></div></div>
+</section>
+
+<!-- 6. ASK -->
+<section class="screen" id="s-ask">
+  <div class="hdr"><div class="crumb"><i></i>ASK</div><span class="mono">ONE QUESTION</span></div>
+  <div class="body">
+    <h1>Ask the ball</h1>
+    <label class="field" style="flex:none"><span class="lbl">YOUR QUESTION</span><input id="question" type="text" placeholder="Should I text them back?" autocomplete="off"></label>
+    <div class="ballwrap" id="ball"><svg viewBox="0 0 260 260" role="img" aria-label="Fortune ball"><circle cx="130" cy="130" r="128" fill="none" stroke="#B93B14" stroke-opacity=".5" stroke-dasharray="2 5"/><circle cx="130" cy="130" r="118" fill="#151412"/><path d="M43.4 80 A100 100 0 0 1 95.8 36" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round"/><circle cx="130" cy="130" r="50" fill="#F6F4F0" stroke="#3A3834" stroke-width="3"/><circle cx="130" cy="130" r="42" fill="none" stroke="#CFCBC2"/><text id="ballTag" x="130" y="131" text-anchor="middle" dominant-baseline="central" font-family="DM Mono, monospace" font-size="22" font-weight="500" letter-spacing="2" fill="#B93B14">?</text></svg></div>
+    <div class="result" style="margin-top:8px"><div class="mono">THE BALL SAYS</div><div class="big" id="ballAns" aria-live="polite">Go on, ask eh</div></div>
+  </div>
+  <div class="actions"><div class="row"><button class="btn" id="askBtn">Ask the ball</button></div><div class="hint" data-hint></div></div>
+</section>
+
+<nav aria-label="Modes" id="nav">
+  <button class="tab" data-t="options">OPTIONS</button><button class="tab" data-t="numbers">NUMBERS</button><button class="tab" data-t="yesno">YES/NO</button><button class="tab" data-t="surprise">SURPRISE</button><button class="tab" data-t="ask">ASK</button>
+</nav>
+
+<!-- EDIT VIEW -->
+<section class="view" id="v-edit">
+  <div class="hdr" style="gap:14px;justify-content:flex-start"><button class="round" id="editBack" aria-label="Back"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7.5 3.5L3 8l4.5 4.5"/></svg></button><div class="crumb"><i></i><span id="editCrumb">EDIT WHEEL</span></div></div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none">
+    <h1 id="editTitle" style="margin-top:20px">What's on the wheel?</h1>
+    <p class="sub" id="editSub"></p>
+    <label class="field" style="margin-top:16px;flex:none"><span class="lbl" id="nameLbl">LIST NAME</span><input class="nameinput" id="editName" type="text" maxlength="24" autocomplete="off"></label>
+    <div class="rows" id="rows"></div>
+    <button class="addrow" id="addRow"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M6 2v8M2 6h8"/></svg>Add slice</button>
+    <div class="err" id="editErr" role="alert"></div>
+  </div>
+  <div style="flex:none;display:flex;flex-direction:column;gap:8px;margin-top:8px">
+    <button class="btn ghost" id="fillBtn" style="flex:none;height:52px"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#B93B14" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:10px"><rect x="3" y="3" width="14" height="14" rx="3.5"/><circle cx="7.5" cy="7.5" r=".7"/><circle cx="12.5" cy="12.5" r=".7"/><circle cx="10" cy="10" r=".7"/></svg>Fill with random ideas</button>
+    <button class="btn" id="doneBtn" style="flex:none">Done</button>
+    <button class="textbtn" id="delBtn" style="height:44px;color:var(--mut);font-size:14px">Delete</button>
+  </div>
+</section>
+
+<!-- SETUP VIEW -->
+<section class="view setup" id="v-setup">
+  <div class="hdr" style="gap:14px;justify-content:flex-start"><button class="round" id="setupBack" aria-label="Skip"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7.5 3.5L3 8l4.5 4.5"/></svg></button><div class="crumb"><i></i>SETUP</div></div>
+  <div class="bigicon"><svg width="44" height="44" viewBox="0 0 44 44" fill="none" stroke="#B93B14" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="15" y="6" width="14" height="32" rx="3.5"/><path d="M21 33h2"/><path d="M8 15c-2 4-2 10 0 14M4 12c-3.5 6-3.5 14 0 20"/><path d="M36 15c2 4 2 10 0 14M40 12c3.5 6 3.5 14 0 20"/></svg></div>
+  <h1 style="margin-top:28px;font-size:34px">Shake to decide</h1>
+  <p class="sub" style="font-size:16px;line-height:1.5;margin-top:14px">Sweet as, let chance decide. Your phone's motion sensor spots a shake. Nothing is recorded, and nothing leaves your phone.</p>
+  <div class="bullets">
+    <div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B685F" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="2" width="7" height="16" rx="2"/><path d="M3 7c-1 2-1 4 0 6M17 7c1 2 1 4 0 6"/></svg><span>Shake on any screen to get an answer</span></div>
+    <div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B685F" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="3.5"/><circle cx="7.5" cy="7.5" r=".6"/><circle cx="12.5" cy="12.5" r=".6"/></svg><span>The answer is random, never tied to how hard you shake</span></div>
+    <div><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B685F" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2.5"/></svg><span>Prefer buttons? Every screen has one</span></div>
+  </div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px"><button class="btn" id="enableBtn" style="flex:none">Enable shake</button><button class="textbtn" id="notNow">Not now</button></div>
+</section>
+
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Unbiased random int in [0,n): rejection sampling on crypto randomness.
+function rnd(n) {
+  if (n <= 1) return 0;
+  if (n > 0xFFFFFFFF) return Math.floor(Math.random() * n);   // never loop forever on a huge n
+  const lim = Math.floor(0x100000000 / n) * n, a = new Uint32Array(1);
+  do { crypto.getRandomValues(a); } while (a[0] >= lim);
+  return a[0] % n;
+}
+function sample(arr, k) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, k);
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- content ---------- */
+const BUILTIN = [
+  { id: 'Eat', name: 'Eat', items: ['Ramen','Hotpot','Sushi','Dumplings','Pizza','Salad','Burgers','Tacos','Curry','Pho','Pasta','Dim sum','Noodles','BBQ','Sandwich','Bibimbap','Meat pie','Fish & chips','Lamington','Pavlova','Hokey pokey ice cream','Sausage sizzle'] },
+  { id: 'Do',  name: 'Do',  items: ['Walk','Movie night','Read','Bake','Sketch','Call a friend','Tidy up','Yoga','Board games','Nap','Journal','Cook','Tramp','Beach cricket','Op shop crawl','Backyard BBQ','Fish off the wharf','Dairy run'] },
+  { id: 'Go',  name: 'Go',  items: ['Beach','Cafe','Park','Museum','Market','Library','Hike','Lookout','Bookshop','Pool','Mission Bay','Piha','Waiheke','Rangitoto','Cornwall Park','Mt Eden summit'] }
+];
+const ANSWERS = [
+  ['YES','Sweet as'],['YES','Hard out'],['YES','Chur, go for it'],['YES',"She'll be right"],['YES','Keen as'],
+  ['YES','Too easy'],['YES','No dramas'],['YES','Good as gold'],['YES','Nah, yeah'],['YES','Why not, eh?'],
+  ['MAYBE','Ask me later, eh'],['MAYBE','Tough one, bro'],['MAYBE','Could go either way'],['MAYBE','Ask again, mate'],['MAYBE','Not clear yet'],
+  ['NO','Yeah, nah'],['NO','Nah, not this time'],['NO','Not even'],['NO','Too hard basket'],['NO','Better not, eh']
+];
+// Kiwi captions under the Yes/No coin
+const SAY = { YES: ['Sweet as','Hard out','Chur'], NO: ['Yeah, nah','Nah','Not even'] };
+const PHONE = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="2" width="7" height="16" rx="2"/><path d="M3 7c-1 2-1 4 0 6M17 7c1 2 1 4 0 6"/></svg>';
+const CHECK = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.5l2.2 2.2L9.5 3.5"/></svg>';
+const PLUS = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M6 2v8M2 6h8"/></svg>';
+const PENCIL = '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5l3 3L5.5 13.5l-3.5.5.5-3.5z"/></svg>';
+
+/* ---------- state ---------- */
+const KEY = 'decide.v1';
+const DEFAULT = () => ({
+  lists: [
+    { id: 'l1', name: 'Dinner',  items: ['Ramen','Hotpot','Sushi','Dumpling','Pizza','Salad'] },
+    { id: 'l2', name: 'Weekend', items: ['Brunch','Hike','Movie night','Beach','Board games','Market'] }
+  ],
+  listId: 'l1', mode: 'my', noRepeat: true,
+  poolSel: { Eat: true, Do: true, Go: false }, custom: [], rnd: null,
+  chance: 50, num: { min: '1', max: '6' }, asked: false, shake: false
+});
+let S = DEFAULT();
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+if (!Array.isArray(S.lists) || !S.lists.length) S.lists = DEFAULT().lists;
+if (!S.lists.some(l => l.id === S.listId)) S.listId = S.lists[0].id;
+S.poolSel = S.poolSel || {}; S.custom = S.custom || [];
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const pools = () => BUILTIN.concat(S.custom);
+const selPools = () => { const p = pools().filter(p => S.poolSel[p.id]); return p.length ? p : [BUILTIN[0]]; };
+const curList = () => S.lists.find(l => l.id === S.listId);
+const curItems = () => S.mode === 'my' ? curList().items : (S.rnd || (regen(), S.rnd));
+function regen() {
+  const all = selPools().flatMap(p => p.items);
+  S.rnd = sample(all, Math.min(6, all.length));
+  while (S.rnd.length < 2) S.rnd.push('…');
+  save();
+}
+
+/* ---------- navigation ---------- */
+const tabs = ['options', 'numbers', 'yesno', 'surprise', 'ask'];
+let tab = 'options';
+function go(t) {
+  tab = t;
+  $$('.screen').forEach(s => s.classList.toggle('on', s.id === 's-' + t));
+  $$('.tab').forEach(b => { if (b.dataset.t === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+}
+$$('.tab').forEach(b => b.addEventListener('click', () => go(b.dataset.t)));
+
+/* ---------- shake ---------- */
+const SHAKE_T = 28;               // summed per-axis acceleration jump (m/s²) that counts as a shake
+const coarse = matchMedia('(pointer:coarse)').matches;
+const needsPerm = typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function';
+let gotMotion = false, listening = false, lx = null, ly = 0, lz = 0, lastFire = 0;
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity;
+  if (!a || a.x == null) return;
+  if (!gotMotion) { gotMotion = true; renderHints(); }
+  if (lx !== null) {
+    const d = Math.abs(a.x - lx) + Math.abs(a.y - ly) + Math.abs(a.z - lz), now = Date.now();
+    if (d > SHAKE_T && now - lastFire > 1200) { lastFire = now; trigger(); }
+  }
+  lx = a.x; ly = a.y; lz = a.z;
+}
+function startMotion() { if (!listening) { window.addEventListener('devicemotion', onMotion); listening = true; } }
+async function enableShake() {
+  try {
+    if (needsPerm) { const r = await DeviceMotionEvent.requestPermission(); if (r !== 'granted') return false; }
+    startMotion(); S.shake = true; save(); gotMotion = true; renderHints(); return true;
+  } catch (e) { return false; }
+}
+function hintHTML() {
+  if (!coarse) return '<span class="mono">PRESS S TO SHAKE</span>';
+  if (gotMotion) return PHONE + '<span class="mono">OR SHAKE YOUR PHONE</span>';
+  return '<button class="linkbtn" data-enable>ENABLE SHAKE</button>';
+}
+function renderHints() { $$('[data-hint]').forEach(h => { h.innerHTML = hintHTML(); }); }
+document.addEventListener('click', e => { if (e.target.closest('[data-enable]')) enableShake(); });
+document.addEventListener('keydown', e => {
+  if ((e.key === 's' || e.key === 'S') && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) trigger();
+});
+const actions = { options: () => spin(), numbers: () => roll(), yesno: () => flip(), surprise: () => draw(), ask: () => ask() };
+function trigger() {
+  if ($('#v-edit').classList.contains('on') || $('#v-setup').classList.contains('on')) return;
+  actions[tab]();
+}
+
+/* ---------- chips ---------- */
+function chip(text, on, fn, o = {}) {
+  const b = document.createElement('button');
+  b.className = 'chip' + (on ? ' on' : '') + (o.dash ? ' dash' : '') + (o.edit ? ' has-edit' : '');
+  b.innerHTML = (on && !o.dash ? CHECK : '') + (o.plus ? PLUS : '') + esc(text);
+  b.addEventListener('click', fn);
+  if (!o.edit) return b;
+  const w = document.createElement('span'); w.className = 'chipwrap';
+  const eb = document.createElement('button'); eb.className = 'editchip'; eb.innerHTML = PENCIL;
+  eb.setAttribute('aria-label', 'Edit ' + text); eb.addEventListener('click', o.edit);
+  w.append(b, eb); return w;
+}
+function poolChips(box, afterToggle) {
+  box.innerHTML = '';
+  pools().forEach(p => {
+    box.append(chip(p.name, !!S.poolSel[p.id], () => {
+      const on = pools().filter(q => S.poolSel[q.id]);
+      if (S.poolSel[p.id] && on.length === 1) return;          // keep at least one pool on
+      S.poolSel[p.id] = !S.poolSel[p.id]; save(); afterToggle();
+    }, p.builtin === undefined && BUILTIN.indexOf(p) < 0 ? { edit: () => openEdit('pool', p, false) } : {}));
+  });
+  box.append(chip('Add pool', false, () => openEdit('pool', { id: null, name: 'Pool ' + (S.custom.length + 1), items: [] }, true), { dash: true, plus: true }));
+}
+
+/* ---------- 2. OPTIONS / wheel ---------- */
+const rot = $('#wheelRot');
+let R = 0, spinTimer = null, spinning = false;
+const pickedMap = {};
+const pickedSet = () => (pickedMap[S.listId] = pickedMap[S.listId] || new Set());
+function buildWheel(items) {
+  const n = items.length, seg = 360 / n, fs = n <= 6 ? 13 : n <= 9 ? 12 : 11, maxc = n <= 6 ? 11 : n <= 9 ? 9 : 8;
+  const pt = a => { const r = a * Math.PI / 180; return [130 + 120 * Math.sin(r), 130 - 120 * Math.cos(r)]; };
+  let h = '<circle cx="130" cy="130" r="120" fill="#F6F4F0" stroke="#151412" stroke-width="1.5"/>';
+  items.forEach((_, i) => {
+    const [x1, y1] = pt((i - .5) * seg), [x2, y2] = pt((i + .5) * seg);
+    h += `<path id="tint${i}" d="M130 130 L${x1} ${y1} A120 120 0 ${seg > 180 ? 1 : 0} 1 ${x2} ${y2} Z" fill="#B93B14" fill-opacity="0"/>`;
+  });
+  items.forEach((_, i) => { const [x, y] = pt((i + .5) * seg); h += `<line x1="130" y1="130" x2="${x}" y2="${y}" stroke="#151412" stroke-width="1" stroke-opacity=".8"/>`; });
+  items.forEach((t, i) => {
+    const s = t.length > maxc ? t.slice(0, maxc - 1) + '…' : t;
+    h += `<text id="lab${i}" transform="translate(130 130) rotate(${i * seg - 90})" x="106" y="0" text-anchor="end" dominant-baseline="central" font-family="Hanken Grotesk, system-ui, sans-serif" font-size="${fs}" fill="#151412">${esc(s)}</text>`;
+  });
+  rot.innerHTML = h;
+  rot.style.transition = 'none'; rot.style.transform = 'rotate(0deg)'; R = 0; void rot.offsetWidth;
+  $('#wheelBox').setAttribute('aria-label', 'Wheel with ' + n + ' options: ' + items.join(', '));
+  applyDim();
+}
+// Dim slices already picked (only in My wheel with "Don't repeat picks" on); everything else full strength.
+function applyDim() {
+  const p = S.mode === 'my' && S.noRepeat ? pickedSet() : new Set();
+  $$('#wheelRot text').forEach((t, i) => { t.style.opacity = p.has(i) ? .35 : 1; });
+}
+function renderOptions() {
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === S.mode)));
+  const box = $('#optChips');
+  if (S.mode === 'my') {
+    box.innerHTML = '';
+    S.lists.forEach(l => box.append(chip(l.name, l.id === S.listId, () => { S.listId = l.id; save(); renderOptions(); })));
+    box.append(chip('New list', false, () => openEdit('list', { id: null, name: 'List ' + (S.lists.length + 1), items: [] }, true), { dash: true, plus: true }));
+  } else {
+    poolChips(box, () => { regen(); renderOptions(); });
+    const lab = document.createElement('span'); lab.className = 'lbl'; lab.textContent = 'DRAW FROM'; lab.style.marginRight = '2px'; box.prepend(lab);
+  }
+  $('#nrRow').hidden = S.mode !== 'my';
+  $('#nrSwitch').setAttribute('aria-checked', String(S.noRepeat));
+  $('#shuffleBtn').hidden = S.mode !== 'random';
+  $('#spinBtn').classList.toggle('spin', S.mode === 'random');
+  $('#optResult').textContent = '—';
+  buildWheel(curItems());
+}
+$$('.seg button').forEach(b => b.addEventListener('click', () => {
+  if (spinning) return;
+  S.mode = b.dataset.m; if (S.mode === 'random' && !S.rnd) regen(); save(); renderOptions();
+}));
+$('#nrSwitch').addEventListener('click', () => {
+  S.noRepeat = !S.noRepeat; save();
+  $('#nrSwitch').setAttribute('aria-checked', String(S.noRepeat));
+  pickedSet().clear(); applyDim();          // toggling either way starts the picks fresh
+});
+$('#shuffleBtn').addEventListener('click', () => { if (spinning) return; regen(); renderOptions(); });
+$('#spinBtn').addEventListener('click', () => spin());
+$('#editBtn').addEventListener('click', () => {
+  if (spinning) return;
+  if (S.mode === 'my') openEdit('list', curList(), false);
+  else openEdit('list', { id: null, name: 'Random mix', items: curItems().slice() }, true);
+});
+function spin() {
+  if (spinning) return;
+  const items = curItems(), n = items.length; if (n < 2) return;
+  let allowed = items.map((_, i) => i);
+  if (S.mode === 'my' && S.noRepeat) {
+    const p = pickedSet(); allowed = allowed.filter(i => !p.has(i));
+    if (!allowed.length) { p.clear(); allowed = items.map((_, i) => i); }
+  }
+  applyDim();
+  const i = allowed[rnd(allowed.length)], seg = 360 / n;
+  const jitter = (rnd(1000) / 1000 - .5) * seg * .6;
+  const want = (((360 - i * seg + jitter) % 360) + 360) % 360, cur = ((R % 360) + 360) % 360;
+  R += 360 * (4 + rnd(2)) + (((want - cur) + 360) % 360);
+  items.forEach((_, k) => { $('#tint' + k).setAttribute('fill-opacity', 0); $('#lab' + k).style.fontWeight = ''; });
+  $('#optResult').textContent = '…';
+  spinning = true; $('#spinBtn').disabled = true; $('#shuffleBtn').disabled = true;
+  rot.style.transition = 'transform 3.8s cubic-bezier(.12,.62,.12,1)';
+  rot.style.transform = 'rotate(' + R + 'deg)';
+  clearTimeout(spinTimer);
+  spinTimer = setTimeout(() => {
+    spinning = false; $('#spinBtn').disabled = false; $('#shuffleBtn').disabled = false;
+    $('#tint' + i).setAttribute('fill-opacity', .13);
+    $('#optResult').textContent = items[i];
+    $('#lab' + i).style.fontWeight = 700;                       // winner stays bold and full strength
+    if (S.mode === 'my' && S.noRepeat) pickedSet().add(i);      // dimmed from the next spin on
+  }, 3900);
+}
+
+/* ---------- 3. NUMBERS ---------- */
+const PIPS = { 1: [[100,100]], 2: [[77,77],[123,123]], 3: [[77,77],[100,100],[123,123]], 4: [[77,77],[123,77],[77,123],[123,123]],
+  5: [[77,77],[123,77],[100,100],[77,123],[123,123]], 6: [[77,77],[77,100],[77,123],[123,77],[123,100],[123,123]] };
+const NUM_CAP = 999;               // keeps the range small: huge spans broke rolling before
+const capNum = n => Math.max(-NUM_CAP, Math.min(NUM_CAP, n));
+function numRange() {
+  let a = parseInt($('#numMin').value, 10), b = parseInt($('#numMax').value, 10);
+  if (isNaN(a) || isNaN(b)) return null;
+  a = capNum(a); b = capNum(b);
+  if (a > b) [a, b] = [b, a];
+  return [a, b];
+}
+// Keep only digits (and one leading minus) and clamp what's typed to ±999.
+function cleanNum(el) {
+  let v = el.value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, '');
+  const n = parseInt(v, 10);
+  if (!isNaN(n) && Math.abs(n) > NUM_CAP) v = String(capNum(n));
+  if (v !== el.value) el.value = v;
+}
+function drawNum(v, tumble) {
+  const r = numRange(), dice = r && r[0] === 1 && r[1] === 6;
+  let h = '<circle cx="100" cy="100" r="98" fill="none" stroke="#B93B14" stroke-opacity=".5" stroke-dasharray="2 5"/><circle cx="100" cy="100" r="82" fill="none" stroke="#C9C5BB"/>';
+  if (dice) {
+    const n = v >= 1 && v <= 6 ? v : 4;
+    h += '<ellipse cx="100" cy="158" rx="40" ry="5" fill="#151412" fill-opacity=".08"/><g class="die' + (tumble ? ' tumble' : '') + '"><rect x="52" y="52" width="96" height="96" rx="24" fill="#F6F4F0" stroke="#151412" stroke-width="1.5"/>' +
+      PIPS[n].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#B93B14"/>`).join('') + '</g>';
+  } else {
+    const s = String(v == null ? '?' : v), fs = s.length <= 2 ? 64 : s.length === 3 ? 52 : s.length <= 5 ? 40 : 28;
+    h += `<text x="100" y="102" text-anchor="middle" dominant-baseline="central" font-family="DM Mono, monospace" font-size="${fs}" font-weight="500" fill="#B93B14">${esc(s)}</text>`;
+  }
+  $('#numSvg').innerHTML = h;
+  $('#numSvg').setAttribute('aria-label', 'Result ' + (v == null ? 'none yet' : v));
+}
+const PRESETS = [['Dice', 1, 6], ['d20', 1, 20], ['1–100', 1, 100]];
+function renderNumChips() {
+  const r = numRange(), box = $('#numChips'); box.innerHTML = '';
+  let hit = false;
+  PRESETS.forEach(([name, a, b]) => {
+    const on = !!r && r[0] === a && r[1] === b; hit = hit || on;
+    box.append(chip(name, on, () => { $('#numMin').value = a; $('#numMax').value = b; numChanged(true); }));
+  });
+  box.append(chip('Custom', !hit, () => { $('#numMin').focus(); }, { dash: hit }));
+  $('#numMeta').textContent = r ? 'RANGE ' + r[0] + '–' + r[1] : 'RANGE —';
+}
+function numChanged(reset) {
+  S.num = { min: $('#numMin').value, max: $('#numMax').value }; save();
+  renderNumChips(); if (reset) { $('#numResult').textContent = '—'; } drawNum(null, false);
+}
+$('#numMin').value = S.num.min; $('#numMax').value = S.num.max;
+cleanNum($('#numMin')); cleanNum($('#numMax'));
+['#numMin', '#numMax'].forEach(id => $(id).addEventListener('input', () => { cleanNum($(id)); numChanged(true); }));
+let rolling = false;
+async function roll() {
+  if (rolling) return;
+  const r = numRange();
+  if (!r) { $('#numResult').textContent = 'Enter two numbers'; return; }
+  rolling = true; $('#rollBtn').disabled = true; $('#numResult').textContent = '…';
+  const [a, b] = r, span = b - a + 1, fin = a + rnd(span);
+  drawNum(a + rnd(span), true);
+  for (let i = 0; i < 11; i++) { await sleep(75); drawNum(a + rnd(span), false); }
+  drawNum(fin, false); $('#numResult').textContent = String(fin);
+  rolling = false; $('#rollBtn').disabled = false;
+}
+$('#rollBtn').addEventListener('click', roll);
+
+/* ---------- 4. YES / NO ---------- */
+let flipping = false;
+function ynMeta() { $('#chanceVal').textContent = S.chance + '%'; $('#ynMeta').textContent = S.chance + ' / ' + (100 - S.chance); }
+$('#chance').value = S.chance; ynMeta();
+$('#chance').addEventListener('input', e => { S.chance = +e.target.value; save(); ynMeta(); });
+async function flip() {
+  if (flipping) return; flipping = true; $('#flipBtn').disabled = true;
+  const fin = rnd(10000) < S.chance * 100 ? 'YES' : 'NO', c = $('#coin'), t = $('#coinText');
+  $('#ynSay').textContent = '';
+  c.classList.remove('toss'); void c.offsetWidth; c.classList.add('toss');
+  for (let i = 0; i < 10; i++) { await sleep(110); t.textContent = i % 2 ? 'YES' : 'NO'; }
+  await sleep(100); t.textContent = fin; $('#ynResult').textContent = fin;
+  $('#ynSay').textContent = SAY[fin][rnd(SAY[fin].length)].toUpperCase();
+  c.classList.remove('toss'); flipping = false; $('#flipBtn').disabled = false;
+}
+$('#flipBtn').addEventListener('click', flip);
+
+/* ---------- 5. SURPRISE ---------- */
+let drawing = false, lastCard = '';
+function renderSurprise() { poolChips($('#poolChips'), renderSurprise); }
+async function draw() {
+  if (drawing) return; drawing = true; $('#drawBtn').disabled = true;
+  const all = selPools().flatMap(p => p.items.map(t => ({ cat: p.name, t })));
+  let c; do { c = all[rnd(all.length)]; } while (all.length > 1 && c.t === lastCard);
+  lastCard = c.t;
+  const st = $('#stack'), f = $('#frontCard');
+  f.classList.remove('reveal'); st.classList.add('shuffle'); $('#cardCat').textContent = '…'; $('#cardTxt').textContent = '';
+  await sleep(800); st.classList.remove('shuffle');
+  $('#cardCat').textContent = c.cat.toUpperCase(); $('#cardTxt').textContent = c.t;
+  void f.offsetWidth; f.classList.add('reveal');
+  drawing = false; $('#drawBtn').disabled = false;
+}
+$('#drawBtn').addEventListener('click', draw);
+
+/* ---------- 6. ASK ---------- */
+let asking = false, lastAns = -1;
+async function ask() {
+  if (asking) return; asking = true; $('#askBtn').disabled = true;
+  let i; do { i = rnd(ANSWERS.length); } while (i === lastAns);
+  lastAns = i;
+  const b = $('#ball'); b.classList.remove('wobble'); void b.offsetWidth; b.classList.add('wobble');
+  $('#ballTag').textContent = '…'; $('#ballAns').textContent = '…';
+  await sleep(950);
+  $('#ballTag').textContent = ANSWERS[i][0]; $('#ballAns').textContent = ANSWERS[i][1];
+  b.classList.remove('wobble'); asking = false; $('#askBtn').disabled = false;
+}
+$('#askBtn').addEventListener('click', ask);
+
+/* ---------- edit view ---------- */
+let edit = null;
+const MAXN = k => k === 'list' ? 12 : 40;
+function openEdit(kind, obj, isNew) {
+  edit = { kind, id: obj.id, items: obj.items.slice(), isNew };
+  const list = kind === 'list';
+  $('#editCrumb').textContent = list ? 'EDIT WHEEL' : 'EDIT POOL';
+  $('#editTitle').textContent = list ? "What's on the wheel?" : "What's in this pool?";
+  $('#editSub').textContent = list ? 'Write your own, or let the app fill it in. 2 to 12 slices.' : 'One idea per row. Pools feed Surprise and Random mix.';
+  $('#nameLbl').textContent = list ? 'LIST NAME' : 'POOL NAME';
+  $('#editName').value = obj.name;
+  $('#addRow').lastChild.textContent = list ? 'Add slice' : 'Add idea';
+  $('#fillBtn').hidden = !list;
+  const canDel = isNew || (list ? S.lists.length > 1 : true);
+  $('#delBtn').hidden = !canDel; $('#delBtn').textContent = isNew ? 'Discard' : list ? 'Delete list' : 'Delete pool';
+  if (!edit.items.length) edit.items = list ? ['', ''] : [''];
+  $('#editErr').textContent = ''; renderRows(); $('#v-edit').classList.add('on');
+}
+function renderRows() {
+  const rows = $('#rows'); rows.innerHTML = '';
+  edit.items.forEach((t, i) => {
+    const r = document.createElement('div'); r.className = 'erow';
+    r.innerHTML = `<span class="n">${String(i + 1).padStart(2, '0')}</span><input type="text" aria-label="Item ${i + 1}" maxlength="40" value="${esc(t)}" data-i="${i}"><button class="round" aria-label="Remove item ${i + 1}" data-rm="${i}"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M3 7h8"/></svg></button>`;
+    rows.append(r);
+  });
+  $('#addRow').hidden = edit.items.length >= MAXN(edit.kind);
+}
+$('#rows').addEventListener('input', e => { if (e.target.dataset.i != null) edit.items[+e.target.dataset.i] = e.target.value; });
+$('#rows').addEventListener('click', e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  edit.items.splice(+b.dataset.rm, 1); if (!edit.items.length) edit.items = ['']; renderRows();
+});
+$('#addRow').addEventListener('click', () => { edit.items.push(''); renderRows(); const l = $$('#rows input'); l[l.length - 1].focus(); });
+$('#fillBtn').addEventListener('click', () => {
+  const all = [...new Set(pools().flatMap(p => p.items))];
+  const k = Math.min(12, Math.max(6, edit.items.filter(s => s.trim()).length));
+  edit.items = sample(all, k); renderRows();
+});
+function closeEdit() { $('#v-edit').classList.remove('on'); edit = null; }
+function finishEdit() {
+  const list = edit.kind === 'list', items = edit.items.map(s => s.trim()).filter(Boolean), min = list ? 2 : 1;
+  if (items.length < min) { $('#editErr').textContent = 'Add at least ' + min + (list ? ' slices.' : ' idea.'); return; }
+  const name = $('#editName').value.trim() || (list ? 'List' : 'Pool');
+  if (list) {
+    if (edit.isNew) { const id = 'l' + Date.now(); S.lists.push({ id, name, items }); S.listId = id; }
+    else { const l = S.lists.find(x => x.id === edit.id); l.name = name; l.items = items; delete pickedMap[l.id]; }
+    S.mode = 'my';
+  } else {
+    if (edit.isNew) { const id = 'p' + Date.now(); S.custom.push({ id, name, items }); S.poolSel[id] = true; }
+    else { const p = S.custom.find(x => x.id === edit.id); p.name = name; p.items = items; }
+    S.rnd = null; if (S.mode === 'random') regen();
+  }
+  save(); closeEdit(); renderOptions(); renderSurprise();
+}
+$('#doneBtn').addEventListener('click', finishEdit);
+$('#editBack').addEventListener('click', () => {
+  const items = edit.items.map(s => s.trim()).filter(Boolean);
+  if (!edit.isNew && items.length >= (edit.kind === 'list' ? 2 : 1)) finishEdit(); else closeEdit();
+});
+$('#delBtn').addEventListener('click', () => {
+  if (!edit.isNew) {
+    if (edit.kind === 'list') { S.lists = S.lists.filter(l => l.id !== edit.id); S.listId = S.lists[0].id; }
+    else { S.custom = S.custom.filter(p => p.id !== edit.id); delete S.poolSel[edit.id]; S.rnd = null; if (S.mode === 'random') regen(); }
+    save();
+  }
+  closeEdit(); renderOptions(); renderSurprise();
+});
+
+/* ---------- setup view ---------- */
+function closeSetup() { S.asked = true; save(); $('#v-setup').classList.remove('on'); }
+$('#enableBtn').addEventListener('click', async () => { await enableShake(); closeSetup(); });
+$('#notNow').addEventListener('click', closeSetup);
+$('#setupBack').addEventListener('click', closeSetup);
+
+/* ---------- boot ---------- */
+if (!needsPerm || S.shake) startMotion();
+if (!S.asked && coarse) $('#v-setup').classList.add('on');
+go('options'); renderOptions(); renderNumChips(); drawNum(null, false); renderSurprise(); renderHints();
+})();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>
